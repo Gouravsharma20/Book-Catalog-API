@@ -2,6 +2,7 @@ const express = require("express")
 
 const Book = require("../models/BookModel");
 const { getAllBook,getSingleBook,deleteSingleBook,updateSingleBook,createNewBook } = require("../Controllers/BookControllers");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get("/",getAllBook)
 
 //create a new book
 
-router.post("/",createNewBook)
+router.post("/",authMiddleware,createNewBook)
 
 //get a single book by its id
 
@@ -19,11 +20,11 @@ router.get("/:id",getSingleBook)
 
 // update a book
 
-router.put("/:id",updateSingleBook)
+router.put("/:id",authMiddleware,updateSingleBook)
 
 //delete a book
 
-router.delete("/:id",deleteSingleBook)
+router.delete("/:id",authMiddleware,deleteSingleBook)
 
 
-module.exports = router
+module.exports = router;

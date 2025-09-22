@@ -29,6 +29,11 @@ const bookSchema = new mongoose.Schema({
     inStock:{
         type:Boolean,
         require:true
+    },
+    createdBy:{
+        type:mongoose.Schema.ObjectId,
+        ref:"User",
+        require:false
     }
 },{timestamps:true}
 )

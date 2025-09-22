@@ -4,13 +4,13 @@ const createToken = require("../utils/token")
 
 // Register User
 const registerUser = async (req, res) => {
-    const { _id, name, email, password } = req.body || {};
+    const {name, email, password } = req.body || {};
     if (!name || !email || !password) {
         return res.status(400).json({ error: "name, email and password are required to signup" })
     }
     try {
         const user = await User.register(name, email, password)
-        const token = createToken(_id)
+        const token = createToken(user._id)
         res.status(201).json({
             success:true,
             message: "Registered successfully",
@@ -22,7 +22,7 @@ const registerUser = async (req, res) => {
 }
 // Login User
 const loginUser = async (req, res) => {
-    const { _id, email, password } = req.body || {};
+    const {email, password } = req.body || {};
     if (!email || !password) {
         return res.status(400).json({
             error: "email and password are required to login"
@@ -31,8 +31,8 @@ const loginUser = async (req, res) => {
     try {
         const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
         const userAgent = req.get('User-Agent') || 'unknown';
-        const user = await User.login(email, password)
-        const token = createToken(_id)
+        const user = await User.login(email, password, ipAddress, userAgent)
+        const token = createToken(user._id)
         res.status(200).json({
             success:true,
             message: "Login Successful",
@@ -47,9 +47,15 @@ const loginUser = async (req, res) => {
             })
         }
         if(err.message.includes("Incorrect Password")){
-            return res.status(404).json({
+            return res.status(401).json({
                 error:"invalid email or password",
                 type:"INVALID_CREDENTIALS"
+            });
+        }
+        if (err.message.includes("User doesn't exist")) {
+            return res.status(404).json({
+                error: "user doest exists",
+                type: "INVALID_CREDENTIALS"
             });
         }
         res.status(400).json({error:err.message})

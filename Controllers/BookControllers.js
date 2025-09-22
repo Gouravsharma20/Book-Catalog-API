@@ -39,11 +39,25 @@ const createNewBook = async (req, res) => {
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ error: "Request body is required" });
         }
-        const newBook = new Book(req.body)
-        const book = newBook.save()
-        if (!book) return res.status(404).json({ error: "Book not found" })
-        res.status(201).json(book)
 
+
+        const userId = req.user._id;
+        const bookData = {
+            ...req.body,
+            createdBy: userId
+        }
+
+
+
+
+        const newBook = new Book(bookData)
+        const book = await newBook.save()
+        if (!book) return res.status(404).json({ error: "Book not found" })
+        res.status(201).json({
+            success: true,
+            message: "book created successfully",
+            book: book
+        })
     } catch (err) {
         res.status(500).json({ Error: err.message })
     }
@@ -59,12 +73,29 @@ const updateSingleBook = async (req, res) => {
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ error: "Request body is required for update" });
         }
-        const updated = await Book.findByIdAndUpdate(id,req.body,{
+        const userId = req.user._id;
+        const existingBook = await Book.findById(id);
+
+        if (!existingBook) {
+            return res.status(404).json({ error: "Book not found" });
+        }
+        if (existingBook.createdBy && existingBook.createdBy.toString() !== userId.toString()) {
+            return res.status(403).json({
+                error: "Forbidden you can only edit book you created"
+            })
+        }
+        const updateData = {...req.body};
+        delete updateData.createdBy;
+
+        const updated = await Book.findByIdAndUpdate(id,updateData,{
             new:true,
             runValidators:true,
+        });
+        return res.status(200).json({
+            success:true,
+            message:"Book updated successfully",
+            book:updated
         })
-        if (!updated) return res.status(404).json({ error: "Book not found" });
-        return res.status(200).json(updated)
     } catch (err) {
         res.status(500).json({ Error: err.message })
     }
@@ -76,11 +107,33 @@ const updateSingleBook = async (req, res) => {
 
 const deleteSingleBook = async (req, res) => {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
         if (!isValidId(id)) return res.status(400).json({ error: "Invalid book id" });
-        const removed = await Book.findByIdAndDelete(id)
-        if(!removed) return res.status(404).json({error: "Book not found"})
-        return res.status(200).json({message:"Book deleted successfully!",book:removed})
+
+        const userId = req.user._id;
+
+        const existingBook = await Book.findById(id);
+        if(!existingBook){
+            return res.status(404).json({error:"book not found"})
+        }
+
+
+        if (existingBook.createdBy && existingBook.createdBy.toString() !== userId.toString()) {
+            return res.status(403).json({
+                error: "Forbidden you can only delete book you created"
+            })
+        }
+
+        const removed = await Book.findByIdAndDelete(id);
+
+        
+
+
+        return res.status(200).json({
+            success:true,
+            message: "Book deleted successfully!",
+            book: removed 
+        })
 
     } catch (err) {
         res.status(500).json({ Error: err.message })
