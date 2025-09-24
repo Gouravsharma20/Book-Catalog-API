@@ -25,6 +25,8 @@ const loginUser = async (req, res) => {
     const {email, password } = req.body || {};
     if (!email || !password) {
         return res.status(400).json({
+            success:false,
+            message:"please enter email o rpassword to login",
             error: "email and password are required to login"
         })
     }
@@ -42,23 +44,28 @@ const loginUser = async (req, res) => {
     } catch (err) {
         if (err.message.includes("Account is locked")){
             return res.status(423).json({
+                success:false,
+                message:"for security reason your account is blocked for 5 m inutes",
                 error:err.message,
                 type:"ACCOUNT_LOCKED"
             })
         }
         if(err.message.includes("Incorrect Password")){
             return res.status(401).json({
+                success:false,
                 error:"invalid email or password",
                 type:"INVALID_CREDENTIALS"
             });
         }
         if (err.message.includes("User doesn't exist")) {
             return res.status(404).json({
+                success:false,
+                message:"New user? please sign up first before login",
                 error: "user doest exists",
                 type: "INVALID_CREDENTIALS"
             });
         }
-        res.status(400).json({error:err.message})
+        res.status(400).json({success:false,error:err.message})
     }
 }
 
