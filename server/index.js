@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 
 const PORT = process.env.PORT || 5001
 
@@ -20,6 +21,7 @@ const userRoutes = require("./routes/UserRoutes")
 
 //Middlewares
 app.use(express.json())
+app.use(cors());
 
 
 // Book Routes
