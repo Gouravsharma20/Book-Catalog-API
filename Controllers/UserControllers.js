@@ -69,8 +69,14 @@ const loginUser = async (req, res) => {
     }
 }
 
+const getAllUsers = async(req,res)=>{
+    res.send(200).json({success:true})
+
+}
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getAllUsers
 }
 

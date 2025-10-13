@@ -20,39 +20,44 @@ const getAllBook = async (req, res) => {
     }
 }
 
-// get A SINGLE BOOK. (currently have duplicate book problem)
+// Get a single book by ID (using query parameter)
 const getSingleBook = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!isValidId(id)) return res.status(400).json({ error: "Invalid book id" });
-        const book = await Book.findById(id)
-        if (!Book) return res.status(404).json({ error: "Book not found" })
-
-
-        if (typeof Book.toSafeObject !== "function") {
+        const { _id } = req.query;  // ← Changed from req.params to req.query
+        
+        if (!_id) {
+            return res.status(400).json({ error: "Book ID is required as query parameter" });
+        }
+        
+        if (!isValidId(_id)) {
+            return res.status(400).json({ error: "Invalid book id" });
+        }
+        
+        const book = await Book.findById(_id);
+        if (!book) return res.status(404).json({ error: "Book not found" });
+          
+        // Check if the method exists on the book instance
+        if (typeof book.toSafeObject === "function") {
+            const safe = book.toSafeObject();
+            return res.status(200).json({
+                success: true,
+                message: `Book with bookid ${safe.id}:`,
+                book: safe
+            });
+        } else {
+            // Fallback if method doesn't exist
             const fallback = {
                 id: book._id.toString(),
                 bookTittle: book.bookTittle
             };
-            const safe = book.toSafeObject();
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
-                message: `Book with bookid ${safe.id} :`,
-                book: safe
-            });
-            res.status(200).json({
-                success: true,
-                message: `Book with bookid ${safe._id} : `,
+                message: `Book with bookid ${fallback.id}:`,
                 book: fallback
-            }
-            );
-
-
-
+            });
         }
-
     } catch (err) {
-        res.status(500).json({ Error: err.message })
+        res.status(500).json({ Error: err.message });
     }
 }
 
