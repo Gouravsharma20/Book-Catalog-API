@@ -25,11 +25,11 @@ router.post("/",authMiddleware,createNewBook)
 
 // update a book
 
-router.put("/:id",authMiddleware,updateSingleBook)
+router.put("/",authMiddleware,updateSingleBook)
 
 //delete a book
 
-router.delete("/:id",authMiddleware,deleteSingleBook)
+router.delete("/",authMiddleware,deleteSingleBook)
 
 
 module.exports = router;

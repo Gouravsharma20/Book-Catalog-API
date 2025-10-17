@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const bookSchema = new mongoose.Schema({
-    bookTittle: {
+    title: {
         type: String,
         trim: true,
         required: true,
@@ -9,63 +9,16 @@ const bookSchema = new mongoose.Schema({
         maxlength: 100,
         unique:true
     },
-    bookAuther: {
+    auther: {
         type: String,
         trim: true,
         required: true,
         minlength: 3,
         maxlength: 50
     },
-    bookGenre: {
+    genre: {
         type: String,
-        enum: [
-            "fiction",
-            "non-fiction",
-            "mystery",
-            "thriller",
-            "romance",
-            "fantasy",
-            "science-fiction",
-            "horror",
-            "adventure",
-            "historical-fiction",
-            "biography",
-            "autobiography",
-            "memoir",
-            "self-help",
-            "philosophy",
-            "psychology",
-            "business",
-            "health",
-            "cooking",
-            "travel",
-            "art",
-            "music",
-            "sports",
-            "religion",
-            "spirituality",
-            "politics",
-            "history",
-            "science",
-            "technology",
-            "education",
-            "children",
-            "young-adult",
-            "poetry",
-            "drama",
-            "comedy",
-            "humor",
-            "crime",
-            "detective",
-            "western",
-            "literary-fiction",
-            "contemporary-fiction",
-            "classic",
-            "reference",
-            "others"
-        ],
-        required: true,
-        default: "fiction"
+        required: true
     },
     price: {
         type: Number,
@@ -85,21 +38,21 @@ const bookSchema = new mongoose.Schema({
 
 }, { timestamps: true }
 )
-bookSchema.index({ bookTittle: 1, bookAuther: 1 }, { unique: true });
+bookSchema.index({ title: 1, auther: 1 }, { unique: true });
 
-bookSchema.method.toListObject = function () {
+bookSchema.methods.toListObject = function () {
     return {
         id: this._id,
-        bookTittle: this.bookTittle
+        title: this.title
     }
 }
 
 bookSchema.methods.toSafeObject = function () {
     return {
         id: this._id.toString(),
-        bookTittle: this.bookTittle,
-        bookAuther: this.bookAuther,
-        bookGenre: this.bookGenre,
+        title: this.title,
+        auther: this.auther,
+        genre: this.genre,
         price: this.price,
         inStock: this.inStock
     }

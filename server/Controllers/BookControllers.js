@@ -8,7 +8,7 @@ const isValidId = (id) => mongoose.isValidObjectId(id);
 const getAllBook = async (req, res) => {
     try {
         const books = await Book.find().sort({ createdAt: -1 })
-        const safeList = books.map(b => (typeof b.toListObject === "function" ? b.toListObject() : { id: b._id, bookTittle: b.bookTittle }));
+        const safeList = books.map(b => (typeof b.toListObjects === "function" ? b.toListObjects() : { id: b._id, title: b.title }));
         res.status(200).json({
             success: true,
             message: "List of all books",
@@ -23,7 +23,7 @@ const getAllBook = async (req, res) => {
 // Get a single book by ID (using query parameter)
 const getSingleBook = async (req, res) => {
     try {
-        const { _id } = req.query;  // ← Changed from req.params to req.query
+        const { _id } = req.query;
         
         if (!_id) {
             return res.status(400).json({ error: "Book ID is required as query parameter" });
@@ -37,8 +37,8 @@ const getSingleBook = async (req, res) => {
         if (!book) return res.status(404).json({ error: "Book not found" });
           
         // Check if the method exists on the book instance
-        if (typeof book.toSafeObject === "function") {
-            const safe = book.toSafeObject();
+        if (typeof book.toSafeObjects === "function") {
+            const safe = book.toSafeObjects();
             return res.status(200).json({
                 success: true,
                 message: `Book with bookid ${safe.id}:`,
@@ -48,7 +48,11 @@ const getSingleBook = async (req, res) => {
             // Fallback if method doesn't exist
             const fallback = {
                 id: book._id.toString(),
-                bookTittle: book.bookTittle
+                title: book.title,
+                auther:book.auther,
+                genre:book.genre,
+                price:book.price,
+                inStock:book.inStock
             };
             return res.status(200).json({
                 success: true,
@@ -71,8 +75,8 @@ const createNewBook = async (req, res) => {
         const normalize = s => (s || "").trim().replace(/\s+/g, " ");
         const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-        const bookTittleRaw = normalize(req.body.bookTittle || "");
-        const bookAutherRaw = normalize(req.body.bookAuther || "");
+        const bookTittleRaw = normalize(req.body.title || "");
+        const bookAutherRaw = normalize(req.body.auther || "");
 
         const userId = req.user && req.user._id;
         if (!userId) return res.status(401).json({ error: "Unauthorized" });
@@ -80,7 +84,7 @@ const createNewBook = async (req, res) => {
         const titleRegex = new RegExp(`^${escapeRegex(bookTittleRaw)}$`, "i");
         const existing = await Book.findOne({
             createdBy: userId,
-            bookTittle: titleRegex
+            title: titleRegex
         });
         if (existing) {
             return res.status(409).json({
@@ -91,14 +95,14 @@ const createNewBook = async (req, res) => {
         const bookData = {
             ...req.body,
             createdBy: userId,
-            bookTittle: bookTittleRaw,
-            bookAuther: bookAutherRaw,
+            title: bookTittleRaw,
+            auther: bookAutherRaw,
             createdBy: userId
         }
 
         const newBook = new Book(bookData)
         const book = await newBook.save()
-        const safe = (typeof book.toSafeObject === "function") ? book.toSafeObject() : book;
+        const safe = (typeof book.toSafeObjects === "function") ? book.toSafeObjects() : book;
         res.status(201).json({
             success: true,
             message: "book created successfully",
@@ -127,13 +131,13 @@ const createNewBook = async (req, res) => {
 // UPDATE A SINGLE BOOK
 const updateSingleBook = async (req, res) => {
     try {
-        const { id } = req.params
-        if (!isValidId(id)) return res.status(400).json({ success: false, message: "Book id is not valid", error: "Invalid book id" });
+        const { _id } = req.query;
+        if (!isValidId(_id)) return res.status(400).json({ success: false, message: "Book id is not valid", error: "Invalid book id" });
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ success: false, message: "Add data in body to update", error: "Request body is required for update" });
         }
         const userId = req.user._id;
-        const existingBook = await Book.findById(id);
+        const existingBook = await Book.findById(_id);
 
         if (!existingBook) {
             return res.status(404).json({ success: false, message: "Book doesnt exists , please add book to edit it", error: "Book not found" });
@@ -146,7 +150,7 @@ const updateSingleBook = async (req, res) => {
         }
         const updateData = { ...req.body };
         delete updateData.createdBy;
-        const updated = await Book.findByIdAndUpdate(id, updateData, {
+        const updated = await Book.findByIdAndUpdate(_id, updateData, {
             new: true,
             runValidators: true,
         });
@@ -163,12 +167,12 @@ const updateSingleBook = async (req, res) => {
 //DELETE A BOOK
 const deleteSingleBook = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!isValidId(id)) return res.status(400).json({ error: "Invalid book id" });
+        const { _id } = req.query;
+        if (!isValidId(_id)) return res.status(400).json({ error: "Invalid book id" });
 
         const userId = req.user._id;
 
-        const existingBook = await Book.findById(id);
+        const existingBook = await Book.findById(_id);
         if (!existingBook) {
             return res.status(404).json({
                 success: false,
@@ -185,7 +189,7 @@ const deleteSingleBook = async (req, res) => {
             })
         }
 
-        const removed = await Book.findByIdAndDelete(id);
+        const removed = await Book.findByIdAndDelete(_id);
 
         return res.status(200).json({
             success: true,
