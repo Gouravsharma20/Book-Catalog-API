@@ -23,12 +23,14 @@ const getAllBook = async (req, res) => {
 // Get a single book by ID (using query parameter)
 const getSingleBook = async (req, res) => {
     try {
-        const { _id } = req.query;
+        const { _id } = req.params;
         
         if (!_id) {
-            return res.status(400).json({ error: "Book ID is required as query parameter" });
+            return res.status(400).json({ error: "Book id is required"});
         }
-        
+        if (_id === null || _id === "") {
+            return res.status(404).json({error:"Book id is null or empty"})
+        }
         if (!isValidId(_id)) {
             return res.status(400).json({ error: "Invalid book id" });
         }
@@ -131,7 +133,7 @@ const createNewBook = async (req, res) => {
 // UPDATE A SINGLE BOOK
 const updateSingleBook = async (req, res) => {
     try {
-        const { _id } = req.query;
+        const { _id } = req.params;
         if (!isValidId(_id)) return res.status(400).json({ success: false, message: "Book id is not valid", error: "Invalid book id" });
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({ success: false, message: "Add data in body to update", error: "Request body is required for update" });
@@ -167,7 +169,7 @@ const updateSingleBook = async (req, res) => {
 //DELETE A BOOK
 const deleteSingleBook = async (req, res) => {
     try {
-        const { _id } = req.query;
+        const { _id } = req.params;
         if (!isValidId(_id)) return res.status(400).json({ error: "Invalid book id" });
 
         const userId = req.user._id;

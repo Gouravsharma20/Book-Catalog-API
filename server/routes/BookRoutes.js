@@ -6,14 +6,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-//get all book or get book by id
+//get all book
+router.get("/",getAllBook)
 
-router.get("/", (req, res) => {
-    if (req.query._id) {
-        return getSingleBook(req, res); 
-    }
-    return getAllBook(req, res);
-});
 
 
 //create a new book
@@ -21,15 +16,16 @@ router.get("/", (req, res) => {
 router.post("/",authMiddleware,createNewBook)
 
 //get a single book by its id
+router.get("/:_id",getSingleBook)
 
 
 // update a book
 
-router.put("/",authMiddleware,updateSingleBook)
+router.put("/:_id",authMiddleware,updateSingleBook)
 
 //delete a book
 
-router.delete("/",authMiddleware,deleteSingleBook)
+router.delete("/:_id",authMiddleware,deleteSingleBook)
 
 
 module.exports = router;
