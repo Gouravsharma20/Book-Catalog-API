@@ -51,7 +51,7 @@ const getSingleBook = async (req, res) => {
             const fallback = {
                 id: book._id.toString(),
                 title: book.title,
-                auther:book.auther,
+                author:book.author,
                 genre:book.genre,
                 price:book.price,
                 inStock:book.inStock
@@ -77,13 +77,13 @@ const createNewBook = async (req, res) => {
         const normalize = s => (s || "").trim().replace(/\s+/g, " ");
         const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-        const bookTittleRaw = normalize(req.body.title || "");
-        const bookAutherRaw = normalize(req.body.auther || "");
+        const bookTitleRaw = normalize(req.body.title || "");
+        const bookAuthorRaw = normalize(req.body.author || "");
 
         const userId = req.user && req.user._id;
         if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-        const titleRegex = new RegExp(`^${escapeRegex(bookTittleRaw)}$`, "i");
+        const titleRegex = new RegExp(`^${escapeRegex(bookTitleRaw)}$`, "i");
         const existing = await Book.findOne({
             createdBy: userId,
             title: titleRegex
@@ -97,8 +97,8 @@ const createNewBook = async (req, res) => {
         const bookData = {
             ...req.body,
             createdBy: userId,
-            title: bookTittleRaw,
-            auther: bookAutherRaw,
+            title: bookTitleRaw,
+            author: bookAuthorRaw,
             createdBy: userId
         }
 
@@ -108,7 +108,7 @@ const createNewBook = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "book created successfully",
-            book: book
+            book: safe
         })
     } catch (err) {
         if (err.code === 11000) {

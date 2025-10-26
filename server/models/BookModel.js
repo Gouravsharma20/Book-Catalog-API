@@ -9,7 +9,7 @@ const bookSchema = new mongoose.Schema({
         maxlength: 100,
         unique:true
     },
-    auther: {
+    author: {
         type: String,
         trim: true,
         required: true,
@@ -38,7 +38,7 @@ const bookSchema = new mongoose.Schema({
 
 }, { timestamps: true }
 )
-bookSchema.index({ title: 1, auther: 1 }, { unique: true });
+bookSchema.index({ title: 1, author: 1 }, { unique: true });
 
 bookSchema.methods.toListObject = function () {
     return {
@@ -51,7 +51,7 @@ bookSchema.methods.toSafeObject = function () {
     return {
         id: this._id.toString(),
         title: this.title,
-        auther: this.auther,
+        author: this.author,
         genre: this.genre,
         price: this.price,
         inStock: this.inStock
