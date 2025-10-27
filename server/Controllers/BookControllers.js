@@ -16,7 +16,8 @@ const getAllBook = async (req, res) => {
         }
         )
     } catch (err) {
-        res.status(500).json({ Error: err.message })
+        console.error("getallbooks error : ",err)
+        return res.status(500).json({success: false, Error: err.message })
     }
 }
 
@@ -59,7 +60,8 @@ const getSingleBook = async (req, res) => {
             });
         }
     } catch (err) {
-        res.status(500).json({ Error: err.message });
+        console.error("getSingleBook error : ",err)
+        return res.status(500).json({success: false, Error: err.message });
     }
 }
 
@@ -76,7 +78,15 @@ const createNewBook = async (req, res) => {
         const bookTitleRaw = normalize(req.body.title || "");
         const bookAuthorRaw = normalize(req.body.author || "");
 
-        const userId = req.user && req.user._id;
+        if(!bookTitleRaw) return res.status(400).json({
+            error:"Title is required"
+        })
+
+        if(!bookAuthorRaw) return res.status(400).json({
+            error:"Auther is required"
+        })
+
+        const userId = req.user && (req.user.id || req.user.userId||req.user._id);
         if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
         const titleRegex = new RegExp(`^${escapeRegex(bookTitleRaw)}$`, "i");
@@ -121,7 +131,8 @@ const createNewBook = async (req, res) => {
                 details: err.message
             });
         }
-        return res.status(500).json({ error: err.message });
+        console.error("CreateNewBook Error : ",err)
+        return res.status(500).json({success: false, error: err.message });
     }
 }
 
@@ -177,10 +188,8 @@ const updateSingleBook = async (req, res) => {
             book: safe
         })
     } catch (err) {
-        res.status(500).json({
-            success: false,
-            Error: err.message 
-        })
+        console.error("updateSingleBook Error : ",err)
+        return res.status(500).json({success: false, err:err.message });
     }
 }
 
@@ -188,9 +197,8 @@ const updateSingleBook = async (req, res) => {
 const deleteSingleBook = async (req, res) => {
     try {
         const idParams = req.params._id || req.params.id;
-        // const { _id } = req.params;
         if (!idParams || !isValidId(idParams)){
-            return res.status(400).json({ error: "Invalid book id" });
+            return res.status(400).json({success: false, error: "Invalid book id" });
 
         } 
 
